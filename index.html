@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="냉장고 사진으로 식재료를 인식하는 맞춤 요리 도우미">
+    <title>냉장고 요리 도우미</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="app-shell">
+        <header class="hero">
+            <div class="top-bar"><span class="guest-badge">게스트 모드 · 이 기기에 저장</span><button id="profile-button" class="outline-button" type="button">프로필 설정</button><button id="library-button" class="outline-button" type="button">내 보관함</button></div>
+            <p class="eyebrow">오늘의 냉장고 탐험</p>
+            <h1>사진 한 장으로<br><span>맞춤 요리</span>를 시작해요</h1>
+            <p class="hero-copy">냉장고 속 재료를 보여주시면, 만들 수 있는 요리의 첫 단계를 찾아드릴게요.</p>
+        </header>
+
+        <section class="workspace" aria-label="식재료 인식">
+            <div class="upload-panel">
+                <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="냉장고 사진 업로드">
+                    <div class="upload-illustration" aria-hidden="true">▧</div>
+                    <h2>냉장고 사진을 올려주세요</h2>
+                    <p>사진을 끌어놓거나, 카메라로 바로 찍어보세요</p>
+                    <div class="upload-actions">
+                        <label class="button button-primary" for="camera-input">카메라로 촬영</label>
+                        <label class="button button-secondary" for="file-input">사진 선택</label>
+                    </div>
+                    <input id="camera-input" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment">
+                    <input id="file-input" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">
+                    <p class="upload-hint">JPG, PNG, WEBP · 원본 최대 15MB</p>
+                </div>
+                <div id="preview-card" class="preview-card is-hidden">
+                    <img id="preview-image" alt="업로드한 냉장고 사진 미리보기">
+                    <div class="preview-meta">
+                        <span id="image-size"></span>
+                        <button id="replace-image" class="text-button" type="button">다른 사진 선택</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-panel" aria-live="polite">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">인식 결과</p>
+                        <h2>냉장고 속 재료</h2>
+                    </div>
+                    <span id="ingredient-count" class="count-badge">0개</span>
+                </div>
+                <div id="status-area" class="status-area">
+                    <p id="empty-message" class="empty-message">사진을 올리면 AI가 식재료를 찾아드려요.</p>
+                    <div id="loading-message" class="loading-message is-hidden">
+                        <span class="spinner" aria-hidden="true"></span>
+                        <div><strong>냉장고를 살펴보고 있어요</strong><span>재료의 이름과 상태를 확인하는 중입니다...</span></div>
+                    </div>
+                    <div id="error-message" class="error-message is-hidden" role="alert"></div>
+                </div>
+                <div id="ingredient-list" class="ingredient-list"></div>
+                <form id="add-ingredient-form" class="add-form">
+                    <label class="visually-hidden" for="ingredient-input">재료 추가</label>
+                    <input id="ingredient-input" type="text" maxlength="40" placeholder="빠진 재료를 직접 추가해보세요">
+                    <button class="button button-small" type="submit">+ 추가</button>
+                </form>
+                <div class="recipe-options">
+                    <div class="option-heading">
+                        <div><p class="eyebrow">레시피 취향</p><h3>어떻게 요리할까요?</h3></div>
+                    </div>
+                    <div class="option-group">
+                        <span class="option-label">조리 시간</span>
+                        <div class="choice-list" data-option="cookingTime">
+                            <button type="button" class="choice is-selected" data-value="15">15분 이내</button>
+                            <button type="button" class="choice" data-value="30">30분 이내</button>
+                            <button type="button" class="choice" data-value="unlimited">상관없음</button>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <span class="option-label">요리 목적</span>
+                        <div class="choice-list" data-option="category">
+                            <button type="button" class="choice is-selected" data-value="quick">간단 한 끼</button>
+                            <button type="button" class="choice" data-value="healthy">다이어트</button>
+                            <button type="button" class="choice" data-value="hearty">든든한 한 끼</button>
+                            <button type="button" class="choice" data-value="snack">홈술·안주</button>
+                        </div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-group"><span class="option-label">매운맛</span><div class="choice-list" data-option="spicy"><button type="button" class="choice is-selected" data-value="mild">순한맛</button><button type="button" class="choice" data-value="spicy">매콤함</button></div></div>
+                        <div class="option-group"><span class="option-label">난이도</span><div class="choice-list" data-option="difficulty"><button type="button" class="choice is-selected" data-value="easy">초보자용</button><button type="button" class="choice" data-value="normal">일반</button></div></div>
+                    </div>
+                    <div class="option-group"><span class="option-label">집에 있는 기본 양념</span><div id="pantry-list" class="pantry-list"></div></div>
+                </div>
+                <button id="recipe-button" class="recipe-button" type="button" disabled>이 재료들로 레시피 추천받기 <span aria-hidden="true">→</span></button>
+            </div>
+        </section>
+
+        <section id="recipe-results" class="recipe-results is-hidden" aria-live="polite">
+            <div class="section-heading"><div><p class="eyebrow">오늘의 추천</p><h2>이 재료로 만들 수 있어요</h2></div><span id="recipe-count" class="count-badge">0가지</span></div>
+            <div id="recipe-loading" class="recipe-loading is-hidden"><span class="spinner" aria-hidden="true"></span><strong>냉장고 재료에 맞는 레시피를 만드는 중이에요...</strong><span id="recipe-tip">좋은 요리는 재료를 존중하는 것에서 시작해요.</span></div>
+            <div id="recipe-error" class="error-message is-hidden" role="alert"></div>
+            <div id="recipe-grid" class="recipe-grid"></div>
+        </section>
+        <section id="cooking-mode" class="cooking-mode is-hidden" aria-live="polite">
+            <div class="section-heading"><div><p class="eyebrow">조리 모드</p><h2 id="cooking-title"></h2></div><button id="close-cooking" class="text-button" type="button">닫기</button></div>
+            <p id="cooking-progress" class="cooking-progress"></p><p id="cooking-step" class="cooking-step"></p>
+            <div class="cooking-actions"><button id="previous-step" class="button button-secondary" type="button">이전</button><button id="next-step" class="button button-primary" type="button">다음 단계</button><button id="timer-button" class="button button-secondary" type="button">타이머 시작</button></div>
+            <p id="timer-display" class="timer-display"></p>
+        </section>
+        <section id="library" class="library is-hidden" aria-live="polite">
+            <div class="section-heading"><div><p class="eyebrow">마이페이지</p><h2 id="library-title">내 레시피 보관함</h2></div><button id="close-library" class="text-button" type="button">닫기</button></div>
+            <div class="library-toolbar"><input id="library-search" type="search" placeholder="요리명이나 재료로 검색"><select id="library-filter" aria-label="보관함 정렬"><option value="recent">최근 저장순</option><option value="favorite">즐겨찾기만</option><option value="easy">쉬운 요리</option></select><button id="print-library" class="button button-secondary" type="button">인쇄</button></div>
+            <div id="library-grid" class="library-grid"></div><p id="library-empty" class="empty-message">아직 저장한 레시피가 없어요. 마음에 드는 레시피를 저장해보세요.</p>
+        </section>
+        <div id="profile-modal" class="modal is-hidden" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+            <div class="modal-card"><div class="section-heading"><div><p class="eyebrow">게스트 프로필</p><h2 id="profile-title">나에게 맞춰볼까요?</h2></div><button id="close-profile" class="text-button" type="button">닫기</button></div>
+                <form id="profile-form">
+                    <label class="form-label" for="nickname">닉네임<input id="nickname" maxlength="30" placeholder="요리하는 사람"></label>
+                    <fieldset><legend>알레르기·회피 재료</legend><div id="allergy-list" class="check-grid"></div></fieldset>
+                    <fieldset><legend>선호 요리 스타일</legend><div id="diet-list" class="check-grid"></div></fieldset>
+                    <fieldset><legend>항상 있는 기본 양념</legend><div id="profile-pantry-list" class="check-grid"></div></fieldset>
+                    <button class="recipe-button" type="submit">프로필 저장</button>
+                </form>
+            </div>
+        </div>
+        <p id="toast" class="toast" role="status"></p>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
